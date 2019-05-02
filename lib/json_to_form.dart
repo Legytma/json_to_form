@@ -10,20 +10,24 @@ class CoreForm extends StatefulWidget {
     @required this.onChanged,
     this.padding,
     this.form_map,
+    this.form_value,
   });
 
   final String form;
   final dynamic form_map;
+  final dynamic form_value;
   final double padding;
   final ValueChanged<dynamic> onChanged;
 
   @override
   _CoreFormState createState() =>
-      new _CoreFormState(form_map ?? json.decode(form));
+      new _CoreFormState(form_items: form_map ?? json.decode(form),
+        form_values: form_value ?? {},);
 }
 
 class _CoreFormState extends State<CoreForm> {
   final dynamic form_items;
+  dynamic form_values;
 
   int radioValue;
 
@@ -32,7 +36,6 @@ class _CoreFormState extends State<CoreForm> {
 
     for (var count = 0; count < form_items.length; count++) {
       Map item = form_items[count];
-
 
       if (item['type'] == "Input" ||
           item['type'] == "Password" ||
@@ -45,13 +48,15 @@ class _CoreFormState extends State<CoreForm> {
               style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
             )));
         list_widget.add(new TextField(
-          controller: null,
+          controller: new TextEditingController(
+            text: form_values[item['name']],
+          ),
           decoration: new InputDecoration(
             hintText: item['placeholder'] ?? "",
           ),
           maxLines: item['type'] == "TareaText" ? 10 : 1,
           onChanged: (String value) {
-            form_items[count]['response'] = value;
+            form_values[item['name']] = value;
             _handleChanged();
           },
           obscureText: item['type'] == "Password" ? true : false,
@@ -65,6 +70,7 @@ class _CoreFormState extends State<CoreForm> {
                 style: new TextStyle(
                     fontWeight: FontWeight.bold, fontSize: 16.0))));
         radioValue = item['value'];
+        form_values[item['name']] = radioValue;
         for (var i = 0; i < item['list'].length; i++) {
           list_widget.add(new Row(children: <Widget>[
             new Expanded(
@@ -88,10 +94,10 @@ class _CoreFormState extends State<CoreForm> {
           new Row(children: <Widget>[
             new Expanded(child: new Text(item['title'])),
             new Switch(
-                value: item['switchValue'],
+                value: form_values[item['name']],
                 onChanged: (bool value) {
                   this.setState(() {
-                    form_items[count]['switchValue'] = value;
+                    form_values[item['name']] = value;
                     _handleChanged();
                   });
                 })
@@ -110,10 +116,10 @@ class _CoreFormState extends State<CoreForm> {
             new Expanded(
                 child: new Text(form_items[count]['list'][i]['title'])),
             new Checkbox(
-                value: form_items[count]['list'][i]['value'],
+                value: form_values[item['name']],
                 onChanged: (bool value) {
                   this.setState(() {
-                    form_items[count]['list'][i]['value'] = value;
+                    form_values[item['name']] = value;
                     _handleChanged();
                   });
                 })
@@ -124,10 +130,10 @@ class _CoreFormState extends State<CoreForm> {
     return list_widget;
   }
 
-  _CoreFormState(this.form_items);
+  _CoreFormState({@required this.form_items, this.form_values});
 
   void _handleChanged() {
-    widget.onChanged(form_items);
+    widget.onChanged(form_values);
   }
 
   @override
