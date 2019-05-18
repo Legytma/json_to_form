@@ -20,9 +20,10 @@ class CoreForm extends StatefulWidget {
   final ValueChanged<dynamic> onChanged;
 
   @override
-  _CoreFormState createState() =>
-      new _CoreFormState(form_items: form_map ?? json.decode(form),
-        form_values: form_value ?? {},);
+  _CoreFormState createState() => _CoreFormState(
+        form_items: form_map ?? json.decode(form),
+        form_values: form_value ?? {},
+      );
 }
 
 class _CoreFormState extends State<CoreForm> {
@@ -31,8 +32,8 @@ class _CoreFormState extends State<CoreForm> {
 
   int radioValue;
 
-  List<Widget> JsonToForm() {
-    List<Widget> list_widget = new List<Widget>();
+  List<Widget> jsonToForm() {
+    List<Widget> listWidget = List<Widget>();
 
     for (var count = 0; count < form_items.length; count++) {
       Map item = form_items[count];
@@ -40,94 +41,143 @@ class _CoreFormState extends State<CoreForm> {
       if (item['type'] == "Input" ||
           item['type'] == "Password" ||
           item['type'] == "Email" ||
+          item['type'] == "Number" ||
+          item['type'] == "Phone" ||
+          item['type'] == "Url" ||
           item['type'] == "TareaText") {
-        list_widget.add(new Container(
-            padding: new EdgeInsets.only(top: 5.0, bottom: 5.0),
-            child: new Text(
-              item['title'],
-              style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-            )));
-        list_widget.add(new TextField(
-          controller: new TextEditingController(
-            text: form_values[item['name']],
-          ),
-          decoration: new InputDecoration(
-            hintText: item['placeholder'] ?? "",
-          ),
-          maxLines: item['type'] == "TareaText" ? 10 : 1,
-          onChanged: (String value) {
-            form_values[item['name']] = value;
-            _handleChanged();
-          },
-          obscureText: item['type'] == "Password" ? true : false,
-        ));
+        listWidget.add(_buildTitle(item['title']));
+        listWidget.add(_buildTextField(item));
       }
 
       if (item['type'] == "RadioButton") {
-        list_widget.add(new Container(
-            margin: new EdgeInsets.only(top: 5.0, bottom: 5.0),
-            child: new Text(item['title'],
-                style: new TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16.0))));
-        radioValue = item['value'];
-        form_values[item['name']] = radioValue;
-        for (var i = 0; i < item['list'].length; i++) {
-          list_widget.add(new Row(children: <Widget>[
-            new Expanded(
-                child: new Text(form_items[count]['list'][i]['title'])),
-            new Radio<int>(
-                value: form_items[count]['list'][i]['value'],
-                groupValue: radioValue,
-                onChanged: (int value) {
-                  this.setState(() {
-                    radioValue = value;
-                    form_items[count]['value'] = value;
-                    _handleChanged();
-                  });
-                })
-          ]));
-        }
+        listWidget.add(_buildTitle(item['title']));
+        listWidget.addAll(_buildRadioGroup(item));
       }
 
       if (item['type'] == "Switch") {
-        list_widget.add(
-          new Row(children: <Widget>[
-            new Expanded(child: new Text(item['title'])),
-            new Switch(
-                value: form_values[item['name']],
-                onChanged: (bool value) {
-                  this.setState(() {
-                    form_values[item['name']] = value;
-                    _handleChanged();
-                  });
-                })
-          ]),
-        );
+        listWidget.add(_buildSwitch(item));
       }
 
       if (item['type'] == "Checkbox") {
-        list_widget.add(new Container(
-            margin: new EdgeInsets.only(top: 5.0, bottom: 5.0),
-            child: new Text(item['title'],
-                style: new TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16.0))));
-        for (var i = 0; i < item['list'].length; i++) {
-          list_widget.add(new Row(children: <Widget>[
-            new Expanded(
-                child: new Text(form_items[count]['list'][i]['title'])),
-            new Checkbox(
-                value: form_values[item['name']],
-                onChanged: (bool value) {
-                  this.setState(() {
-                    form_values[item['name']] = value;
-                    _handleChanged();
-                  });
-                })
-          ]));
-        }
+        listWidget.add(_buildTitle(item['title']));
+        listWidget.addAll(_buildCheckbox(item));
       }
     }
-    return list_widget;
+    return listWidget;
+  }
+
+  List<Widget> _buildCheckbox(Map item) {
+    List<Widget> listCheckbox = List<Widget>();
+
+    for (var i = 0; i < item['list'].length; i++) {
+      listCheckbox.add(Row(children: <Widget>[
+        Expanded(child: Text(item['list'][i]['title'])),
+        Checkbox(
+          value: form_values[item['name']],
+          onChanged: (bool value) {
+            this.setState(() {
+              form_values[item['name']] = value;
+
+              _handleChanged();
+            });
+          },
+        )
+      ]));
+    }
+
+    return listCheckbox;
+  }
+
+  Row _buildSwitch(Map item) {
+    return Row(children: <Widget>[
+      Expanded(child: Text(item['title'])),
+      Switch(
+        value: form_values[item['name']],
+        onChanged: (bool value) {
+          this.setState(() {
+            form_values[item['name']] = value;
+
+            _handleChanged();
+          });
+        },
+      )
+    ]);
+  }
+
+  List<Widget> _buildRadioGroup(Map item) {
+    List<Widget> listRadioGroup = List<Widget>();
+
+    for (var i = 0; i < item['list'].length; i++) {
+      listRadioGroup.add(Row(children: <Widget>[
+        Expanded(child: Text(item['list'][i]['title'])),
+        Radio<int>(
+          value: item['list'][i]['value'],
+          groupValue: form_values[item['name']],
+          onChanged: (int value) {
+            this.setState(() {
+              form_values[item['name']] = value;
+
+              _handleChanged();
+            });
+          },
+        ),
+      ]));
+    }
+
+    return listRadioGroup;
+  }
+
+  TextField _buildTextField(Map item) {
+    return TextField(
+      controller: TextEditingController(text: form_values[item['name']]),
+      decoration: InputDecoration(hintText: item['placeholder'] ?? ""),
+      maxLines: item['type'] == "TareaText" ? 10 : 1,
+      onChanged: (String value) {
+        form_values[item['name']] = value;
+
+        _handleChanged();
+      },
+      obscureText: item['type'] == "Password" ? true : false,
+      keyboardType: _keyboardType(item['type']),
+    );
+  }
+
+  TextInputType _keyboardType(String type) {
+    switch (type) {
+      case "Email":
+        return TextInputType.emailAddress;
+        break;
+
+      case "Number":
+        return TextInputType.number;
+        break;
+
+      case "Phone":
+        return TextInputType.phone;
+        break;
+
+      case "Url":
+        return TextInputType.url;
+        break;
+
+      case "TareaText":
+        return TextInputType.multiline;
+        break;
+
+      default:
+        return TextInputType.text;
+        break;
+    }
+  }
+
+  Widget _buildTitle(String title) {
+    return Container(
+      padding: EdgeInsets.only(top: 5.0, bottom: 5.0),
+      child: Text(
+        title,
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+      ),
+    );
   }
 
   _CoreFormState({@required this.form_items, this.form_values});
@@ -139,11 +189,11 @@ class _CoreFormState extends State<CoreForm> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return new Container(
-      padding: new EdgeInsets.all(widget.padding ?? 8.0),
-      child: new Column(
+    return Container(
+      padding: EdgeInsets.all(widget.padding ?? 8.0),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: JsonToForm(),
+        children: jsonToForm(),
       ),
     );
   }
