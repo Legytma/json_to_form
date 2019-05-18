@@ -37,32 +37,37 @@ class _CoreFormState extends State<CoreForm> {
 
     for (var count = 0; count < form_items.length; count++) {
       Map item = form_items[count];
+      String type = item['type'];
 
-      if (item['type'] == "Input" ||
-          item['type'] == "Password" ||
-          item['type'] == "Email" ||
-          item['type'] == "Number" ||
-          item['type'] == "Phone" ||
-          item['type'] == "Url" ||
-          item['type'] == "TareaText") {
-        listWidget.add(_buildTitle(item['title']));
-        listWidget.add(_buildTextField(item));
-      }
+      switch (type) {
+        case "RadioButton":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.addAll(_buildRadioGroup(item));
+          break;
 
-      if (item['type'] == "RadioButton") {
-        listWidget.add(_buildTitle(item['title']));
-        listWidget.addAll(_buildRadioGroup(item));
-      }
+        case "Switch":
+          listWidget.add(_buildSwitch(item));
+          break;
 
-      if (item['type'] == "Switch") {
-        listWidget.add(_buildSwitch(item));
-      }
+        case "Checkbox":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.addAll(_buildCheckbox(item));
+          break;
 
-      if (item['type'] == "Checkbox") {
-        listWidget.add(_buildTitle(item['title']));
-        listWidget.addAll(_buildCheckbox(item));
+        case "Input":
+        case "Password":
+        case "Email":
+        case "Number":
+        case "Phone":
+        case "Url":
+        case "TareaText":
+        default:
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.add(_buildTextField(item));
+          break;
       }
     }
+
     return listWidget;
   }
 
