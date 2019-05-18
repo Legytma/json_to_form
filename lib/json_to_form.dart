@@ -133,18 +133,42 @@ class _CoreFormState extends State<CoreForm> {
   }
 
   TextField _buildTextField(Map item) {
+    var textEditingController = TextEditingController(
+      text: item['type'] == "Number"
+          ? "${form_values[item['name']]}"
+          : form_values[item['name']],
+    );
     return TextField(
-      controller: TextEditingController(text: form_values[item['name']]),
+      controller: textEditingController,
       decoration: InputDecoration(hintText: item['placeholder'] ?? ""),
       maxLines: item['type'] == "TareaText" ? 10 : 1,
       onChanged: (String value) {
-        form_values[item['name']] = value;
+        if (item['type'] == "Number") {
+          if (!isNumber(value)) {
+            textEditingController.clear();
+          }
+
+          form_values[item['name']] =
+              value == null ? null : num.tryParse(value) ?? null;
+        } else {
+          form_values[item['name']] = value;
+        }
 
         _handleChanged();
       },
       obscureText: item['type'] == "Password" ? true : false,
       keyboardType: _keyboardType(item['type']),
     );
+  }
+
+  bool isNumber(String value) {
+    if (value == null) {
+      return true;
+    }
+
+    final n = num.tryParse(value);
+
+    return n != null;
   }
 
   TextInputType _keyboardType(String type) {
