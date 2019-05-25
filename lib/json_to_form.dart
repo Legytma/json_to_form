@@ -54,6 +54,18 @@ class _CoreFormState extends State<CoreForm> {
           listWidget.addAll(_buildCheckbox(item));
           break;
 
+        case "DropdownString":
+        case "LookupString":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.add(_buildDropdownButtom<String>(item));
+          break;
+
+        case "DropdownInteger":
+        case "LookupInteger":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.add(_buildDropdownButtom<int>(item));
+          break;
+
         case "Input":
         case "Password":
         case "Email":
@@ -224,6 +236,30 @@ class _CoreFormState extends State<CoreForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: jsonToForm(),
       ),
+    );
+  }
+
+  Widget _buildDropdownButtom<T>(Map item) {
+    List<DropdownMenuItem<T>> dropdownMenuItemList =
+        List<DropdownMenuItem<T>>();
+
+    for (var i = 0; i < item['list'].length; i++) {
+      dropdownMenuItemList.add(DropdownMenuItem<T>(
+        child: Text(item['list'][i]['title']),
+        value: item['list'][i]['value'],
+      ));
+    }
+
+    return DropdownButton<T>(
+      items: dropdownMenuItemList,
+      value: form_values[item['name']],
+      onChanged: (T value) {
+        this.setState(() {
+          form_values[item['name']] = value;
+
+          _handleChanged();
+        });
+      },
     );
   }
 }
