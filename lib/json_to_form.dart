@@ -55,12 +55,10 @@ class _CoreFormState extends State<CoreForm> {
           break;
 
         case "ListString":
-        case "ListString":
           listWidget.add(_buildTitle(item['title']));
           listWidget.addAll(_buildEditList<String>(item));
           break;
 
-        case "ListInteger":
         case "ListInteger":
           listWidget.add(_buildTitle(item['title']));
           listWidget.addAll(_buildEditList<int>(item));
