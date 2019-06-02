@@ -54,6 +54,18 @@ class _CoreFormState extends State<CoreForm> {
           listWidget.addAll(_buildCheckbox(item));
           break;
 
+        case "ListString":
+        case "ListString":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.addAll(_buildEditList<String>(item));
+          break;
+
+        case "ListInteger":
+        case "ListInteger":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.addAll(_buildEditList<int>(item));
+          break;
+
         case "DropdownString":
         case "LookupString":
           listWidget.add(_buildTitle(item['title']));
@@ -190,6 +202,7 @@ class _CoreFormState extends State<CoreForm> {
         break;
 
       case "Number":
+      case "ListNumber":
         return TextInputType.number;
         break;
 
@@ -261,5 +274,66 @@ class _CoreFormState extends State<CoreForm> {
         });
       },
     );
+  }
+
+  List<Widget> _buildEditList<T>(Map item) {
+    List<Widget> editList = List<Widget>();
+
+    var textEditingController = TextEditingController();
+
+    editList.add(
+      Row(children: <Widget>[
+        Expanded(
+          child: TextField(
+            controller: textEditingController,
+            decoration: InputDecoration(hintText: item['placeholder'] ?? ""),
+            maxLines: 1,
+            onChanged: (String value) {
+              if (item['type'] == "ListNumber") {
+                if (!isNumber(value)) {
+                  textEditingController.clear();
+                }
+              }
+            },
+            keyboardType: _keyboardType(item['type']),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () {
+            if (!form_values[item['name']]) {
+              form_values[item['name']] = List<T>();
+            }
+
+            var value = textEditingController.text;
+
+            if (value != null && item['type'] != "ListNumber" ||
+                isNumber(value)) {
+              setState(() {
+                form_values[item['name']].add(value);
+              });
+            }
+
+            textEditingController.clear();
+
+            _handleChanged();
+          },
+        ),
+      ]),
+    );
+
+    var listRows = form_values[item['name']].reversed.map((data) {
+      return Dismissible(
+        key: Key(data),
+        child: ListTile(title: Text(data)),
+        onDismissed: (dismisDirection) {
+          _handleChanged();
+        },
+      );
+    }).toList();
+
+    editList.add(ListView(children: listRows));
+
+    return editList;
   }
 }
