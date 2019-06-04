@@ -60,25 +60,28 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String form_send_email = json.encode([
-    {'type': 'Input', 'title': 'Subject', 'placeholder': "Subject"},
-    {'type': 'TareaText', 'title': 'Message', 'placeholder': "Content"},
+    {'name': "subject", 'type': 'Input', 'title': 'Subject', 'placeholder': "Subject"},
+    {'name': "content", 'type': 'TareaText', 'title': 'Message', 'placeholder': "Content"},
   ]);
   String form = json.encode([
-    {'type': 'Input', 'title': 'Hi Group', 'placeholder': "Hi Group flutter"},
+    {'name': "higroup", 'type': 'Input', 'title': 'Hi Group', 'placeholder': "Hi Group flutter"},
     {
+      'name': 'password',
       'type': 'Password',
       'title': 'Password',
     },
-    {'type': 'Email', 'title': 'Email test', 'placeholder': "hola a todos"},
+    {'name': 'email', 'type': 'Email', 'title': 'Email test', 'placeholder': "hola a todos"},
+    {'name': 'url', 'type': 'Url', 'title': 'URL', 'placeholder': "hola a todos"},
     {
+      'name': 'tareatexttest',
       'type': 'TareaText',
       'title': 'TareaText test',
       'placeholder': "hola a todos"
     },
     {
+      'name': 'radiobuton1',
       'type': 'RadioButton',
-      'title': 'Radio Button tests',
-      'value': 2,
+      'title': 'Radio Button test 1',
       'list': [
         {
           'title': "product 1",
@@ -95,25 +98,44 @@ class _MyHomePageState extends State<MyHomePage> {
       ]
     },
     {
+      'name': 'radiobuton2',
+      'type': 'RadioButton',
+      'title': 'Radio Button test 2',
+      'list': [
+        {
+          'title': "product 1",
+          'value': 1,
+        },
+        {
+          'title': "product 2",
+          'value': 2,
+        },
+        {
+          'title': "product 3",
+          'value': 3,
+        }
+      ]
+    },
+    {
+      'name': 'switch',
       'type': 'Switch',
       'title': 'Switch test',
-      'switchValue': false,
     },
     {
       'type': 'Checkbox',
       'title': 'Checkbox test',
       'list': [
         {
+          'name': 'checkbox1product1',
           'title': "product 1",
-          'value': true,
         },
         {
+          'name': 'checkbox1product2',
           'title': "product 2",
-          'value': false,
         },
         {
+          'name': 'checkbox1product3',
           'title': "product 3",
-          'value': false,
         }
       ]
     },
@@ -122,16 +144,54 @@ class _MyHomePageState extends State<MyHomePage> {
       'title': 'Checkbox test 2',
       'list': [
         {
+          'name': 'checkbox2product1',
           'title': "product 1",
-          'value': true,
         },
         {
+          'name': 'checkbox2product2',
           'title': "product 2",
-          'value': true,
         },
         {
+          'name': 'checkbox2product3',
           'title': "product 3",
-          'value': false,
+        }
+      ]
+    },
+    {
+      'name': 'dropdownstring',
+      'type': 'DropdownString',
+      'title': 'DropdownString test',
+      'list': [
+        {
+          'title': "Item 1",
+          'value': "item1",
+        },
+        {
+          'title': "Item 2",
+          'value': "item2",
+        },
+        {
+          'title': "Item 3",
+          'value': "item3",
+        }
+      ]
+    },
+    {
+      'name': 'dropdowninteger',
+      'type': 'DropdownInteger',
+      'title': 'DropdownInteger test',
+      'list': [
+        {
+          'title': "Item 1",
+          'value': 1,
+        },
+        {
+          'title': "Item 2",
+          'value': 2,
+        },
+        {
+          'title': "Item 3",
+          'value': 3,
         }
       ]
     },
@@ -160,6 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: new Column(children: <Widget>[
             new CoreForm(
               form: form,
+              form_value: response,
               onChanged: (dynamic response) {
                 this.response = response;
               },

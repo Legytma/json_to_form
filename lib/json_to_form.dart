@@ -10,7 +10,7 @@ class CoreForm extends StatefulWidget {
     @required this.onChanged,
     this.padding,
     this.form_map,
-    this.form_value,
+    @required this.form_value,
   });
 
   final String form;
@@ -33,6 +33,8 @@ class _CoreFormState extends State<CoreForm> {
   int radioValue;
 
   List<Widget> jsonToForm() {
+    print('form_values: $form_values');
+
     List<Widget> listWidget = List<Widget>();
 
     for (var count = 0; count < form_items.length; count++) {
@@ -100,10 +102,10 @@ class _CoreFormState extends State<CoreForm> {
       listCheckbox.add(Row(children: <Widget>[
         Expanded(child: Text(item['list'][i]['title'])),
         Checkbox(
-          value: form_values[item['name']],
+          value: form_values[item['list'][i]['name']] ?? false,
           onChanged: (bool value) {
             this.setState(() {
-              form_values[item['name']] = value;
+              form_values[item['list'][i]['name']] = value;
 
               _handleChanged();
             });
@@ -119,7 +121,7 @@ class _CoreFormState extends State<CoreForm> {
     return Row(children: <Widget>[
       Expanded(child: Text(item['title'])),
       Switch(
-        value: form_values[item['name']],
+        value: form_values[item['name']] ?? false,
         onChanged: (bool value) {
           this.setState(() {
             form_values[item['name']] = value;
@@ -139,7 +141,7 @@ class _CoreFormState extends State<CoreForm> {
         Expanded(child: Text(item['list'][i]['title'])),
         Radio<int>(
           value: item['list'][i]['value'],
-          groupValue: form_values[item['name']],
+          groupValue: form_values[item['name']] ?? 0,
           onChanged: (int value) {
             this.setState(() {
               form_values[item['name']] = value;
