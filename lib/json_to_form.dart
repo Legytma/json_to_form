@@ -3,6 +3,7 @@ library json_to_form;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class CoreForm extends StatefulWidget {
   const CoreForm({
@@ -10,7 +11,7 @@ class CoreForm extends StatefulWidget {
     @required this.onChanged,
     this.padding,
     this.form_map,
-    this.form_value,
+    @required this.form_value,
   });
 
   final String form;
@@ -33,6 +34,8 @@ class _CoreFormState extends State<CoreForm> {
   int radioValue;
 
   List<Widget> jsonToForm() {
+    print('form_values: $form_values');
+
     List<Widget> listWidget = List<Widget>();
 
     for (var count = 0; count < form_items.length; count++) {
@@ -54,16 +57,26 @@ class _CoreFormState extends State<CoreForm> {
           listWidget.addAll(_buildCheckbox(item));
           break;
 
+        case "ListString":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.addAll(_buildEditList<String>(item));
+          break;
+
+        case "ListNumber":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.addAll(_buildEditList<num>(item));
+          break;
+
         case "DropdownString":
         case "LookupString":
           listWidget.add(_buildTitle(item['title']));
           listWidget.add(_buildDropdownButtom<String>(item));
           break;
 
-        case "DropdownInteger":
-        case "LookupInteger":
+        case "DropdownNumber":
+        case "LookupNumber":
           listWidget.add(_buildTitle(item['title']));
-          listWidget.add(_buildDropdownButtom<int>(item));
+          listWidget.add(_buildDropdownButtom<num>(item));
           break;
 
         case "Input":
@@ -90,10 +103,10 @@ class _CoreFormState extends State<CoreForm> {
       listCheckbox.add(Row(children: <Widget>[
         Expanded(child: Text(item['list'][i]['title'])),
         Checkbox(
-          value: form_values[item['name']],
+          value: form_values[item['list'][i]['name']] ?? false,
           onChanged: (bool value) {
             this.setState(() {
-              form_values[item['name']] = value;
+              form_values[item['list'][i]['name']] = value;
 
               _handleChanged();
             });
@@ -109,7 +122,7 @@ class _CoreFormState extends State<CoreForm> {
     return Row(children: <Widget>[
       Expanded(child: Text(item['title'])),
       Switch(
-        value: form_values[item['name']],
+        value: form_values[item['name']] ?? false,
         onChanged: (bool value) {
           this.setState(() {
             form_values[item['name']] = value;
@@ -129,7 +142,7 @@ class _CoreFormState extends State<CoreForm> {
         Expanded(child: Text(item['list'][i]['title'])),
         Radio<int>(
           value: item['list'][i]['value'],
-          groupValue: form_values[item['name']],
+          groupValue: form_values[item['name']] ?? 0,
           onChanged: (int value) {
             this.setState(() {
               form_values[item['name']] = value;
@@ -190,6 +203,7 @@ class _CoreFormState extends State<CoreForm> {
         break;
 
       case "Number":
+      case "ListNumber":
         return TextInputType.number;
         break;
 
@@ -259,6 +273,158 @@ class _CoreFormState extends State<CoreForm> {
 
           _handleChanged();
         });
+      },
+    );
+  }
+
+  List<Widget> _buildEditList<T>(Map item) {
+    List<Widget> editList = List<Widget>();
+
+    var textEditingController = TextEditingController();
+
+    editList.add(
+      Row(children: <Widget>[
+        Expanded(
+          child: TextField(
+            controller: textEditingController,
+            decoration: InputDecoration(hintText: item['placeholder'] ?? ""),
+            maxLines: 1,
+            onChanged: (String value) {
+              if (item['type'] == "ListNumber") {
+                if (!isNumber(value)) {
+                  textEditingController.clear();
+                }
+              }
+            },
+            keyboardType: _keyboardType(item['type']),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () {
+            if (form_values[item['name']] == null) {
+              form_values[item['name']] = List<T>();
+            }
+
+            var value = textEditingController.text;
+
+            if (value != null) {
+              if (item['type'] != "ListNumber") {
+                setState(() {
+                  form_values[item['name']].add(value);
+                });
+              } else if (isNumber(value)) {
+                setState(() {
+                  form_values[item['name']].add(num.tryParse(value));
+                });
+              }
+            }
+
+            textEditingController.clear();
+
+            _handleChanged();
+          },
+        ),
+      ]),
+    );
+
+    List<Widget> listRows = List<Widget>();
+
+    if (form_values[item['name']] != null) {
+      for (int i = 0; i < form_values[item['name']].length; i++) {
+        listRows.add(Card(
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Slidable.builder(
+            delegate: SlidableStrechDelegate(),
+            secondaryActionDelegate: new SlideActionBuilderDelegate(
+                actionCount: 1,
+                builder: (context, index, animation, renderingMode) {
+                  return IconSlideAction(
+                    caption: 'Delete',
+                    closeOnTap: true,
+                    color: Colors.red,
+                    icon: Icons.delete,
+                    onTap: () => _buildConfirmationDialog(
+                        context, i, animation, renderingMode, item),
+                  );
+                }),
+            key: Key(form_values[item['name']][i].toString()),
+            child: ListTile(
+              title: Text(form_values[item['name']][i].toString()),
+//          onTap: () => print(value),
+//              onTap: () => crudBloc.dispatch(EditCrudEvent(value)),
+            ),
+          ),
+        )
+//            Dismissible(
+//          key: Key(form_values[item['name']][i]),
+//          child: ListTile(title: Text(form_values[item['name']][i])),
+//          onDismissed: (dismisDirection) {
+//            _handleChanged();
+//          },
+//        )
+            );
+      }
+    }
+
+    if (listRows.length == 0) {
+      print("0");
+      //listRows.add(ListTile(title: Text("")));
+    }
+
+    print("listRows: $listRows");
+
+    editList.add(SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          ListView(
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            //padding: const EdgeInsets.only(top: 20.0),
+            children: listRows,
+          )
+        ],
+      ),
+    ));
+
+    return editList;
+  }
+
+  _buildConfirmationDialog(
+      BuildContext context,
+      int index,
+      Animation<double> animation,
+      SlidableRenderingMode renderingMode,
+      Map item) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete'),
+          content: Text('Value will be deleted'),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            FlatButton(
+              child: Text('Delete'),
+              onPressed: () {
+//                print(
+//                    'value ${form_values[item['name']][index]} on $index has removed');
+                setState(() {
+                  form_values[item['name']].removeAt(index);
+                });
+
+                _handleChanged();
+
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
       },
     );
   }
