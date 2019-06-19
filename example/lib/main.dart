@@ -60,18 +60,43 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String form_send_email = json.encode([
-    {'name': "subject", 'type': 'Input', 'title': 'Subject', 'placeholder': "Subject"},
-    {'name': "content", 'type': 'TareaText', 'title': 'Message', 'placeholder': "Content"},
+    {
+      'name': "subject",
+      'type': 'Input',
+      'title': 'Subject',
+      'placeholder': "Subject"
+    },
+    {
+      'name': "content",
+      'type': 'TareaText',
+      'title': 'Message',
+      'placeholder': "Content"
+    },
   ]);
   String form = json.encode([
-    {'name': "higroup", 'type': 'Input', 'title': 'Hi Group', 'placeholder': "Hi Group flutter"},
+    {
+      'name': "higroup",
+      'type': 'Input',
+      'title': 'Hi Group',
+      'placeholder': "Hi Group flutter"
+    },
     {
       'name': 'password',
       'type': 'Password',
       'title': 'Password',
     },
-    {'name': 'email', 'type': 'Email', 'title': 'Email test', 'placeholder': "hola a todos"},
-    {'name': 'url', 'type': 'Url', 'title': 'URL', 'placeholder': "hola a todos"},
+    {
+      'name': 'email',
+      'type': 'Email',
+      'title': 'Email test',
+      'placeholder': "hola a todos"
+    },
+    {
+      'name': 'url',
+      'type': 'Url',
+      'title': 'URL',
+      'placeholder': "hola a todos"
+    },
     {
       'name': 'tareatexttest',
       'type': 'TareaText',
@@ -177,9 +202,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ]
     },
     {
-      'name': 'dropdowninteger',
-      'type': 'DropdownInteger',
-      'title': 'DropdownInteger test',
+      'name': 'dropdownnumber',
+      'type': 'DropdownNumber',
+      'title': 'DropdownNumber test',
       'list': [
         {
           'title': "Item 1",
@@ -192,7 +217,34 @@ class _MyHomePageState extends State<MyHomePage> {
         {
           'title': "Item 3",
           'value': 3,
+        },
+        {
+          'title': "Item 3.5",
+          'value': 3.5,
         }
+      ]
+    },
+    {
+      'name': 'liststring',
+      'type': 'ListString',
+      'title': 'List String',
+      'placeholder': 'Item',
+      'list': [
+        'Item 1',
+        'Item 2',
+        'Item 3',
+      ]
+    },
+    {
+      'name': 'listnumber',
+      'type': 'ListNumber',
+      'title': 'List Number',
+      'placeholder': '0',
+      'list': [
+        1,
+        2,
+        3,
+        3.5,
       ]
     },
   ]);
