@@ -2,8 +2,10 @@ library json_to_form;
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
 class CoreForm extends StatefulWidget {
   const CoreForm({
@@ -77,6 +79,13 @@ class _CoreFormState extends State<CoreForm> {
         case "LookupNumber":
           listWidget.add(_buildTitle(item['title']));
           listWidget.add(_buildDropdownButtom<num>(item));
+          break;
+
+        case "DatePicker":
+        case "DateTimePicker":
+        case "TimePicker":
+          listWidget.add(_buildTitle(item['title']));
+          listWidget.add(_buildDateTimePicker(item));
           break;
 
         case "Input":
@@ -168,18 +177,20 @@ class _CoreFormState extends State<CoreForm> {
       decoration: InputDecoration(hintText: item['placeholder'] ?? ""),
       maxLines: item['type'] == "TareaText" ? 10 : 1,
       onChanged: (String value) {
-        if (item['type'] == "Number") {
-          if (!isNumber(value)) {
-            textEditingController.clear();
+        this.setState(() {
+          if (item['type'] == "Number") {
+            if (!isNumber(value)) {
+              textEditingController.clear();
+            }
+
+            form_values[item['name']] =
+                value == null ? null : num.tryParse(value) ?? null;
+          } else {
+            form_values[item['name']] = value;
           }
 
-          form_values[item['name']] =
-              value == null ? null : num.tryParse(value) ?? null;
-        } else {
-          form_values[item['name']] = value;
-        }
-
-        _handleChanged();
+          _handleChanged();
+        });
       },
       obscureText: item['type'] == "Password" ? true : false,
       keyboardType: _keyboardType(item['type']),
@@ -292,7 +303,9 @@ class _CoreFormState extends State<CoreForm> {
             onChanged: (String value) {
               if (item['type'] == "ListNumber") {
                 if (!isNumber(value)) {
-                  textEditingController.clear();
+                  this.setState(() {
+                    textEditingController.clear();
+                  });
                 }
               }
             },
@@ -302,27 +315,25 @@ class _CoreFormState extends State<CoreForm> {
         IconButton(
           icon: const Icon(Icons.add),
           onPressed: () {
-            if (form_values[item['name']] == null) {
-              form_values[item['name']] = List<T>();
-            }
-
-            var value = textEditingController.text;
-
-            if (value != null) {
-              if (item['type'] != "ListNumber") {
-                setState(() {
-                  form_values[item['name']].add(value);
-                });
-              } else if (isNumber(value)) {
-                setState(() {
-                  form_values[item['name']].add(num.tryParse(value));
-                });
+            setState(() {
+              if (form_values[item['name']] == null) {
+                form_values[item['name']] = List<T>();
               }
-            }
 
-            textEditingController.clear();
+              var value = textEditingController.text;
 
-            _handleChanged();
+              if (value != null) {
+                if (item['type'] != "ListNumber") {
+                  form_values[item['name']].add(value);
+                } else if (isNumber(value)) {
+                  form_values[item['name']].add(num.tryParse(value));
+                }
+              }
+
+              textEditingController.clear();
+
+              _handleChanged();
+            });
           },
         ),
       ]),
@@ -416,9 +427,9 @@ class _CoreFormState extends State<CoreForm> {
 //                    'value ${form_values[item['name']][index]} on $index has removed');
                 setState(() {
                   form_values[item['name']].removeAt(index);
-                });
 
-                _handleChanged();
+                  _handleChanged();
+                });
 
                 Navigator.of(context).pop(true);
               },
@@ -427,5 +438,75 @@ class _CoreFormState extends State<CoreForm> {
         );
       },
     );
+  }
+
+  Widget _buildDateTimePicker(Map item) {
+    InputType inputType = _getDateTimeInputType(item['type']);
+    DateFormat dateFormat =
+        DateFormat(item['format'] ?? _defaultDateTimeFormat(inputType));
+    var value;
+
+    if (form_values[item['name']] != null) {
+      value = dateFormat.format(form_values[item['name']]);
+    } else {
+      value = null;
+    }
+
+    TextEditingController dateTimeEditingController = TextEditingController(
+      text: value,
+    );
+
+    return DateTimePickerFormField(
+      inputType: inputType,
+      format: dateFormat,
+      editable: true,
+      controller: dateTimeEditingController,
+      decoration: InputDecoration(
+          hintText: item['placeholder'] ?? "", hasFloatingPlaceholder: false),
+      onChanged: (DateTime value) {
+        this.setState(() {
+          form_values[item['name']] = value;
+
+          _handleChanged();
+        });
+      },
+    );
+  }
+
+  String _defaultDateTimeFormat(InputType inputType) {
+    const String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
+    const String DEFAULT_TIME_FORMAT = "HH:mm";
+
+    switch (inputType) {
+      case InputType.both:
+        return "$DEFAULT_DATE_FORMAT $DEFAULT_TIME_FORMAT";
+        break;
+
+      case InputType.date:
+        return DEFAULT_DATE_FORMAT;
+        break;
+
+      case InputType.time:
+        return DEFAULT_TIME_FORMAT;
+        break;
+    }
+  }
+
+  InputType _getDateTimeInputType(String type) {
+    switch (type) {
+      case "DatePicker":
+        return InputType.date;
+        break;
+
+      case "DateTimePicker":
+        return InputType.both;
+        break;
+
+      case "TimePicker":
+        return InputType.time;
+        break;
+    }
+
+    throw "Não implementado";
   }
 }
