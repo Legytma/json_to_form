@@ -247,6 +247,27 @@ class _MyHomePageState extends State<MyHomePage> {
         3.5,
       ]
     },
+    {
+      'name': 'date',
+      'type': "DatePicker",
+      'title': 'Date',
+      'placeholder': '01/01/1900',
+      'tooltip': 'Date',
+    },
+    {
+      'name': 'datetime',
+      'type': "DateTimePicker",
+      'title': 'Date Time',
+      'placeholder': '01/01/1900 00:00:00',
+      'tooltip': 'Date Time',
+    },
+    {
+      'name': 'time',
+      'type': "TimePicker",
+      'title': 'Time',
+      'placeholder': '00:00:00',
+      'tooltip': 'Time',
+    },
   ]);
   dynamic response;
 
