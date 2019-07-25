@@ -7,8 +7,8 @@ homepage: https://github.com/VictorRancesCode/json_to_form
 dependencies:
   flutter:
     sdk: flutter
-  flutter_slidable: "^0.4.9"
-  datetime_picker_formfield: "^0.2.0"
+  flutter_slidable: ">=0.4.9"
+  datetime_picker_formfield: ">=0.2.0"
 
 dev_dependencies:
   flutter_test:
