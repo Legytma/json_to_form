@@ -346,7 +346,7 @@ class _CoreFormState extends State<CoreForm> {
         listRows.add(Card(
           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Slidable.builder(
-            delegate: SlidableStrechDelegate(),
+            actionPane: SlidableDrawerActionPane(),
             secondaryActionDelegate: new SlideActionBuilderDelegate(
                 actionCount: 1,
                 builder: (context, index, animation, renderingMode) {
@@ -441,26 +441,32 @@ class _CoreFormState extends State<CoreForm> {
   }
 
   Widget _buildDateTimePicker(Map item) {
-    InputType inputType = _getDateTimeInputType(item['type']);
     DateFormat dateFormat =
-        DateFormat(item['format'] ?? _defaultDateTimeFormat(inputType));
-    var value;
-
-    if (form_values[item['name']] != null) {
-      value = dateFormat.format(form_values[item['name']]);
-    } else {
-      value = null;
-    }
-
-    TextEditingController dateTimeEditingController = TextEditingController(
-      text: value,
-    );
-
-    return DateTimePickerFormField(
-      inputType: inputType,
+        DateFormat(item['format'] ?? _defaultDateTimeFormat(item['type']));
+//    var value;
+//
+//    if (form_values[item['name']] != null) {
+//      value = dateFormat.format(form_values[item['name']]);
+//    } else {
+//      value = null;
+//    }
+//
+//    TextEditingController dateTimeEditingController = TextEditingController(
+//      text: value,
+//    );
+    print("item: $item");
+    print("item['type']: ${item['type']}");
+    return DateTimeField(
       format: dateFormat,
-      editable: true,
-      controller: dateTimeEditingController,
+      onShowPicker: (context, currentValue) async {
+        return await _showDatePicker(context, currentValue, item['type']);
+      },
+      readOnly: false,
+//      resetIcon: Icon(Icons.delete),
+//      controller: dateTimeEditingController,
+      initialValue: form_values[item['name']],
+      autovalidate: true,
+      validator: (date) => date == null ? "Invalid date" : null,
       decoration: InputDecoration(
           hintText: item['placeholder'] ?? "", hasFloatingPlaceholder: false),
       onChanged: (DateTime value) {
@@ -473,37 +479,61 @@ class _CoreFormState extends State<CoreForm> {
     );
   }
 
-  String _defaultDateTimeFormat(InputType inputType) {
-    const String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
-    const String DEFAULT_TIME_FORMAT = "HH:mm";
+  Future<DateTime> _showDatePicker(
+      BuildContext context, DateTime currentValue, String type) async {
+    var date;
+    var time;
 
-    switch (inputType) {
-      case InputType.both:
-        return "$DEFAULT_DATE_FORMAT $DEFAULT_TIME_FORMAT";
-        break;
+    print("type: $type");
 
-      case InputType.date:
-        return DEFAULT_DATE_FORMAT;
-        break;
-
-      case InputType.time:
-        return DEFAULT_TIME_FORMAT;
-        break;
+    if (type == "DateTimePicker" || type == "DatePicker") {
+      date = await showDatePicker(
+        context: context,
+        firstDate: DateTime(1900),
+        initialDate: currentValue ?? DateTime.now(),
+        lastDate: DateTime(2100),
+      );
     }
-  }
 
-  InputType _getDateTimeInputType(String type) {
+    if (type == "TimePicker" || (type == "DateTimePicker" && date != null)) {
+      time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
+      );
+    }
+
     switch (type) {
-      case "DatePicker":
-        return InputType.date;
+      case "DateTimePicker":
+        return date != null ? DateTimeField.combine(date, time) : currentValue;
         break;
 
-      case "DateTimePicker":
-        return InputType.both;
+      case "DatePicker":
+        return date ?? currentValue;
         break;
 
       case "TimePicker":
-        return InputType.time;
+        return time != null ? DateTimeField.convert(time) : currentValue;
+        break;
+    }
+
+    return currentValue;
+  }
+
+  String _defaultDateTimeFormat(String type) {
+    const String DEFAULT_DATE_FORMAT = "dd/MM/yyyy";
+    const String DEFAULT_TIME_FORMAT = "HH:mm";
+
+    switch (type) {
+      case "DateTimePicker":
+        return "$DEFAULT_DATE_FORMAT $DEFAULT_TIME_FORMAT";
+        break;
+
+      case "DatePicker":
+        return DEFAULT_DATE_FORMAT;
+        break;
+
+      case "TimePicker":
+        return DEFAULT_TIME_FORMAT;
         break;
     }
 
